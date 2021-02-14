@@ -1,0 +1,822 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests\n",
+    "from bs4 import BeautifulSoup\n",
+    "from time import sleep\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "garagemoving = requests.get('https://phoenix.craigslist.org/d/garage-moving-sales/search/gms')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "bs = BeautifulSoup(garagemoving.text,'html.parser')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "posts = bs.find(class_='rows') #looked through developer to find class id"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "144\n"
+     ]
+    }
+   ],
+   "source": [
+    "listings = bs.find_all('li',class_='result-row') #narrowed down class id\n",
+    "print(len(listings))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<li class=\"result-row\" data-pid=\"7268963688\">\n",
+      "<a class=\"result-image gallery\" data-ids=\"3:00B0B_jE0zkrgUy5Iz_0CI0t2,3:00I0I_aumpNkjCop7z_0CI0t2,3:00c0c_3gYukkjyRnUz_0t20CI,3:00606_hLnuJ42ZV4oz_0t20CI,3:00i0i_2Dl1wvWI6pAz_0t20CI,3:01010_3nOYZmBBIuZz_0t20CI,3:00Z0Z_lGV6F4bcTejz_0t20CI,3:00s0s_6pw3muBd0A6z_0t20CI,3:00000_blR01V1wlgez_0t20CI,3:00N0N_lvrLphbaF6tz_0t20CI,3:01515_gLyvELxu93Pz_0CI0t2,3:00y0y_9ycwUzj2oLLz_0t20CI\" href=\"https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\">\n",
+      "<span class=\"result-price\">$0</span>\n",
+      "</a>\n",
+      "<div class=\"result-info\">\n",
+      "<span class=\"icon icon-star\" role=\"button\">\n",
+      "<span class=\"screen-reader-text\">favorite this post</span>\n",
+      "</span>\n",
+      "<h3 class=\"result-heading\">\n",
+      "<a class=\"result-title hdrlnk\" data-id=\"7268963688\" href=\"https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\" id=\"postid_7268963688\">Yard sale Fencing outdoor furniture half moon tables</a>\n",
+      "</h3>\n",
+      "<span class=\"result-meta\">\n",
+      "<span class=\"result-price\">$0</span>\n",
+      "<span class=\"result-hood\"> (phoenix)</span>\n",
+      "<span class=\"result-tags\">\n",
+      "<span class=\"pictag\">pic</span>\n",
+      "</span>\n",
+      "<span class=\"banish icon icon-trash\" role=\"button\">\n",
+      "<span class=\"screen-reader-text\">hide this posting</span>\n",
+      "</span>\n",
+      "<span aria-hidden=\"true\" class=\"unbanish icon icon-trash red\" role=\"button\"></span>\n",
+      "<a class=\"restore-link\" href=\"#\">\n",
+      "<span class=\"restore-narrow-text\">restore</span>\n",
+      "<span class=\"restore-wide-text\">restore this posting</span>\n",
+      "</a>\n",
+      "</span>\n",
+      "</div>\n",
+      "</li>\n"
+     ]
+    }
+   ],
+   "source": [
+    "first_listing = listings[0] #checked first listing\n",
+    "print(first_listing)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<a class=\"result-image gallery\" data-ids=\"3:00B0B_jE0zkrgUy5Iz_0CI0t2,3:00I0I_aumpNkjCop7z_0CI0t2,3:00c0c_3gYukkjyRnUz_0t20CI,3:00606_hLnuJ42ZV4oz_0t20CI,3:00i0i_2Dl1wvWI6pAz_0t20CI,3:01010_3nOYZmBBIuZz_0t20CI,3:00Z0Z_lGV6F4bcTejz_0t20CI,3:00s0s_6pw3muBd0A6z_0t20CI,3:00000_blR01V1wlgez_0t20CI,3:00N0N_lvrLphbaF6tz_0t20CI,3:01515_gLyvELxu93Pz_0CI0t2,3:00y0y_9ycwUzj2oLLz_0t20CI\" href=\"https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\">\n",
+       "<span class=\"result-price\">$0</span>\n",
+       "</a>"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "first_listing.find('a',href=True) #narrowed down to class a as long as it has an href"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "first_listing_title = first_listing.find('a',class_='result-title hdrlnk')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "first_listing_url = first_listing_title['href']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html'"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "first_listing_url"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "listing_titles = [] #loop same as first listing, for all listings\n",
+    "listing_urls = []\n",
+    "\n",
+    "for listing in listings:\n",
+    "    listing_title = listing.find('a',class_='result-title hdrlnk')\n",
+    "    listing_title_text = listing_title.text\n",
+    "    listing_titles.append(listing_title_text)\n",
+    "    listing_url = listing_title['href']\n",
+    "    listing_urls.append(listing_url)\n",
+    "print('\\n')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Yard sale Fencing outdoor furniture half moon tables',\n",
+       " 'Moving Sale! Lots of Furniture/Fashion',\n",
+       " 'Big Big Big Yard Sale',\n",
+       " 'Moving Sale',\n",
+       " 'Big Yard Sale lots of good stuff',\n",
+       " 'Massive Estate sale',\n",
+       " 'Huge Yard Sale',\n",
+       " 'Moving! Must Sell Everything',\n",
+       " 'Huge moving sale',\n",
+       " 'Staging sale! Interior design',\n",
+       " 'Multi Family Garage Sale',\n",
+       " 'MULTIPLE VINTAGE COLLECTABLE STORAGE LOCKER AUCTION ITEM SALE!',\n",
+       " 'Moving Sale',\n",
+       " 'Moving Sale',\n",
+       " 'Hugh moving sale this weekend  Saturday 23th and Sunday 14th',\n",
+       " 'Moving sale',\n",
+       " 'Estate Sale Fine Art, Antiques, TVs, Housewares',\n",
+       " 'Yard Sale (Venta de garaje )',\n",
+       " 'HUGE. ESTATE SALE',\n",
+       " 'Large Garage Sale',\n",
+       " 'Yard Sale, Lots of baby & maternity Stuff',\n",
+       " 'Make It Go Garage Sale',\n",
+       " 'STUFF you may need yard SALE!',\n",
+       " 'Garage Sale!! Saturday 2/13 & Sunday 2/14',\n",
+       " 'Moving Sale Everything Must Go 2/13-2/14',\n",
+       " 'Garage sale! Masks required!',\n",
+       " 'Huge yard sale Today',\n",
+       " 'Yard sale',\n",
+       " 'Big Sale',\n",
+       " 'Garage / Moving sale Saturday and Sunday',\n",
+       " 'garage/estate sale',\n",
+       " 'Moving and estate sell everything must go',\n",
+       " \"COUPONER'S STOCKPILE SALE: TIDE, EUCERIN,CREST & MORE\",\n",
+       " 'Yard sale Fencing outdoor furniture half moon tables',\n",
+       " 'Moving Sale! Lots of Furniture/Fashion',\n",
+       " 'Big Big Big Yard Sale',\n",
+       " 'Big Yard Sale lots of good stuff',\n",
+       " 'Massive Estate sale',\n",
+       " 'Huge Yard Sale',\n",
+       " 'Moving and estate sell everything must go',\n",
+       " 'Moving and estate sell everything must go',\n",
+       " 'Moving and estate sell everything must go',\n",
+       " 'Moving and estate sell everything must go',\n",
+       " 'Moving! Must Sell Everything',\n",
+       " 'Garage Sale 95th Ave & Peoria Ave',\n",
+       " 'Huge moving sale',\n",
+       " 'Staging sale! Interior design',\n",
+       " 'Multi Family Garage Sale',\n",
+       " 'MULTIPLE VINTAGE COLLECTABLE STORAGE LOCKER AUCTION ITEM SALE!',\n",
+       " 'Moving Sale',\n",
+       " 'Hugh moving sale this weekend  Saturday 23th and Sunday 14th',\n",
+       " 'Moving sale',\n",
+       " 'Estate Sale Fine Art, Antiques, TVs, Housewares',\n",
+       " 'Yard Sale (Venta de garaje )',\n",
+       " 'HUGE. ESTATE SALE',\n",
+       " 'Large Garage Sale',\n",
+       " 'Yard Sale, Lots of baby & maternity Stuff',\n",
+       " 'Make It Go Garage Sale',\n",
+       " 'STUFF you may need yard SALE!',\n",
+       " 'Garage Sale!! Saturday 2/13 & Sunday 2/14',\n",
+       " 'Moving Sale Everything Must Go 2/13-2/14',\n",
+       " 'Garage sale! Masks required!',\n",
+       " 'Huge yard sale Today',\n",
+       " 'Yard sale',\n",
+       " 'Big Sale',\n",
+       " 'Garage / Moving sale Saturday and Sunday',\n",
+       " 'Auto, Motorcycle and Misc. Items Swap Meet Sun Feb 14 2021',\n",
+       " 'Sun City Garage Sale',\n",
+       " 'Huge Mid Century Modern Warehouse/sidewalk sale!!',\n",
+       " 'Yard Sale',\n",
+       " 'Furniture Moving Sale NORTH SCOTTSDALE-85255',\n",
+       " 'GARAGE SALE: Sun., Feb 14th 8AM-12PM',\n",
+       " 'Free for pickup',\n",
+       " 'Appliances, plastic glassware, massage table, Surroundsound,Gas range,',\n",
+       " 'Yard Sale Knock Down Prices, YARD SALE, Clearence Sunday 8am-10am',\n",
+       " 'Yard Sale',\n",
+       " 'Free for pickup',\n",
+       " 'Everything must go living room set dining room sets bedroom sets',\n",
+       " 'Emergency sale. My loss your gain',\n",
+       " 'ANTIQUES / JEWELRY & MORE',\n",
+       " 'Estate Sale  Part 1',\n",
+       " 'ANTIQUES / JEWELRY & MORE',\n",
+       " 'Moving sale',\n",
+       " 'Moving Sale',\n",
+       " 'Estate Sale  Part 1',\n",
+       " 'Estate Sale',\n",
+       " 'Payson AZ Moving Sale Furniture TVs Storage and more',\n",
+       " 'ESTATE SALE',\n",
+       " 'Multi-Family Yard Sale (Buckeye / Goodyear)',\n",
+       " 'Vendor Fair!  Join us for a great day outdoors!',\n",
+       " 'Garage & Moving Sale',\n",
+       " 'Inventory liquidation',\n",
+       " 'Large Moving Sale',\n",
+       " 'Moving Sale',\n",
+       " 'Yard Sale',\n",
+       " 'ANTIQUES / JEWELRY & MORE',\n",
+       " 'Estate Sale',\n",
+       " 'ESTATE SALE',\n",
+       " 'Multi-Family Yard Sale (Buckeye / Goodyear)',\n",
+       " 'Vendor Fair!  Join us for a great day outdoors!',\n",
+       " 'Storage Auction',\n",
+       " 'Big clean out garage yard sale',\n",
+       " 'Estate Sale',\n",
+       " 'Estate Sale',\n",
+       " 'Moving/Estate Sale TODAY & SUNDAY',\n",
+       " 'Patio sale',\n",
+       " 'Moving sale',\n",
+       " 'Prescott Valley Estate Sale',\n",
+       " 'Spring Valley Estate Sale',\n",
+       " 'HUGE SALE',\n",
+       " 'Inn At Civano Teec  Nos Pos Navajo Rug Furniture & MORE',\n",
+       " 'Beer brewing equipment',\n",
+       " 'Garage Sale, Reloading supplies, Antiques',\n",
+       " 'Pickers paradise Art*Building Materials*Housewares*Plants yard sale!!',\n",
+       " 'Hundreds of items for sale',\n",
+       " 'Grasons Estate Sale-Feb 13th-14th Sat/Sun (Tucson)',\n",
+       " 'Garage/Moving Sale!',\n",
+       " 'Everything Must Go! Furniture,Jewelry,Art,and Lots More!',\n",
+       " 'Moving Sale',\n",
+       " 'VALENTINE YARD SALE',\n",
+       " 'Moving Stuff',\n",
+       " 'Huge estate sale!!!',\n",
+       " 'Tanqueverde Swap Meet Flea Market',\n",
+       " 'Grasons Estate Sale-Feb 13th-14th Sat/Sun',\n",
+       " '2nd Sunday Vintage Market',\n",
+       " 'Mercado Vintage Flea Market',\n",
+       " 'Foothills Sunday Market',\n",
+       " 'Jewelry, Gold, Gemstones, Turquoise, Sterling Silver',\n",
+       " 'Designer, upscale garage sale',\n",
+       " 'ESTATE SALE',\n",
+       " 'ESTATE & COLLECTABLE Sale Feb. 20th',\n",
+       " 'HUGE Estate Sale, Everything in a whole  house goes,Sat,Sun 9 am',\n",
+       " 'Here is an old cool items for sale.',\n",
+       " 'Bring out with the whole family to the 77 Swap Meet',\n",
+       " '77 SWAP MEET, White Mountain Lake Az.',\n",
+       " 'Friendly Flea Market In Snowflake',\n",
+       " 'Live Auction Friday Feb. 19',\n",
+       " 'Moving Sale Payson Furniture Electronics Exercise Equip Kitchen wares',\n",
+       " 'Inventory liquidation',\n",
+       " 'Mon-Friday',\n",
+       " 'Huge Garage Sale Foothills',\n",
+       " 'Indoor Yard Sale',\n",
+       " 'WHISKEY, CASINO, MILITARY, LICENSE PLATES  COLLECTIBES     LES',\n",
+       " 'Patio Heater']"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "listing_titles"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale-lots-of/7274400873.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-big-big-big-yard-sale/7275332897.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-moving-sale/7275775002.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/chandler-big-yard-sale-lots-of-good/7275866813.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-massive-estate-sale/7276157291.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-huge-yard-sale/7276197280.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-must-sell-everything/7276319764.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-huge-moving-sale/7276487183.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-staging-sale-interior-design/7276539534.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-multi-family-garage-sale/7272004729.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/avondale-multiple-vintage-collectable/7274310249.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7274492208.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7275235800.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/casa-grande-hugh-moving-sale-this/7275445739.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7275577143.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/scottsdale-estate-sale-fine-art/7275778357.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-yard-sale-venta-de-garaje/7276308733.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-huge-estate-sale/7276653188.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/tempe-large-garage-sale/7276698402.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-yard-sale-lots-of-baby/7276739542.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/tempe-make-it-go-garage-sale/7276747048.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-stuff-you-may-need-yard-sale/7276772048.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/valley-farms-garage-sale-saturday/7276816977.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-moving-sale-everything/7276882599.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-sale-masks-required/7276892895.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/phoenix-huge-yard-sale-today/7276893723.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/glendale-yard-sale/7276911029.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/phoenix-big-sale/7276924166.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-garage-moving-sale-saturday/7276942671.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-estate-sale/7272785917.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-moving-and-estate-sell/7269045083.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-couponers-stockpile-sale/7275633615.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale-lots-of/7274400873.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-big-big-big-yard-sale/7275332897.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/chandler-big-yard-sale-lots-of-good/7275866813.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-massive-estate-sale/7276157291.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-huge-yard-sale/7276197280.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/surprise-moving-and-estate-sell/7276299231.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-moving-and-estate-sell/7276299857.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/surprise-moving-and-estate-sell/7276300228.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/surprise-moving-and-estate-sell/7276300608.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-must-sell-everything/7276319764.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/peoria-garage-sale-95th-ave-peoria-ave/7276437728.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-huge-moving-sale/7276487183.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-staging-sale-interior-design/7276539534.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-multi-family-garage-sale/7272004729.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/avondale-multiple-vintage-collectable/7274310249.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7274492208.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/casa-grande-hugh-moving-sale-this/7275445739.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7275577143.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/scottsdale-estate-sale-fine-art/7275778357.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-yard-sale-venta-de-garaje/7276308733.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-huge-estate-sale/7276653188.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/tempe-large-garage-sale/7276698402.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-yard-sale-lots-of-baby/7276739542.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/tempe-make-it-go-garage-sale/7276747048.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-stuff-you-may-need-yard-sale/7276772048.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/valley-farms-garage-sale-saturday/7276816977.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-moving-sale-everything/7276882599.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-sale-masks-required/7276892895.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/phoenix-huge-yard-sale-today/7276893723.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/glendale-yard-sale/7276911029.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/phoenix-big-sale/7276924166.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-garage-moving-sale-saturday/7276942671.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-auto-motorcycle-and/7258515129.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/peoria-sun-city-garage-sale/7275947993.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-huge-mid-century-modern/7276023891.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-yard-sale/7276349929.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/scottsdale-furniture-moving-sale-north/7276682944.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/queen-creek-garage-sale-sun-feb-14th/7276699737.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-free-for-pickup/7276733267.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/peoria-appliances-plastic-glassware/7277087612.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-yard-sale-knock-down-prices/7277110210.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/mesa-yard-sale/7276349929.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/surprise-free-for-pickup/7276733267.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-everything-must-go/7274729105.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/maricopa-emergency-sale-my-loss-your/7274387342.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7274855889.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-estate-sale-part/7275656515.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7276443020.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7277173350.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7275235800.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-estate-sale-part/7275656515.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/payson-payson-az-moving-sale-furniture/7275815276.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/peoria-estate-sale/7276102562.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/goodyear-multi-family-yard-sale-buckeye/7276506499.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/goodyear-vendor-fair-join-us-for-great/7276511561.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-garage-moving-sale/7268082605.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/glendale-inventory-liquidation/7274529317.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/apache-junction-large-moving-sale/7274809647.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-moving-sale/7275775002.html',\n",
+       " 'https://phoenix.craigslist.org/evl/gms/d/tempe-yard-sale/7276380966.html',\n",
+       " 'https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7276443020.html',\n",
+       " 'https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/peoria-estate-sale/7276102562.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/goodyear-multi-family-yard-sale-buckeye/7276506499.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/goodyear-vendor-fair-join-us-for-great/7276511561.html',\n",
+       " 'https://phoenix.craigslist.org/wvl/gms/d/peoria-storage-auction/7275028707.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-big-clean-out-garage-yard-sale/7273854628.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-valley-estate-sale/7276316442.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-estate-sale/7275731360.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-moving-estate-sale-today-sunday/7276934261.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-patio-sale/7276936213.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/chino-valley-moving-sale/7277055691.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/prescott-valley-prescott-valley-estate/7273095854.html',\n",
+       " 'https://prescott.craigslist.org/gms/d/dewey-spring-valley-estate-sale/7276963444.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-huge-sale/7273138517.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-inn-at-civano-teec-nos-pos/7273517124.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-beer-brewing-equipment/7274131067.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-garage-sale-reloading-supplies/7276412774.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-pickers-paradise-artbuilding/7273189383.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-hundreds-of-items-for-sale/7275030371.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-grasons-estate-sale-feb-13th/7275387339.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/sahuarita-garage-moving-sale/7275691177.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-everything-must-go/7276545562.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-moving-sale/7276739428.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/catalina-valentine-yard-sale/7276809795.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-moving-stuff/7276818371.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-huge-estate-sale/7277011666.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-tanqueverde-swap-meet-flea-market/7277093406.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-grasons-estate-sale-feb-13th/7274530764.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-2nd-sunday-vintage-market/7276217325.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-mercado-vintage-flea-market/7276499238.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-foothills-sunday-market/7277111514.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-jewelry-gold-gemstones-turquoise/7276889943.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/green-valley-designer-upscale-garage/7276173807.html',\n",
+       " 'https://tucson.craigslist.org/gms/d/tucson-estate-sale/7274617267.html',\n",
+       " 'https://flagstaff.craigslist.org/gms/d/little-falls-estate-collectable-sale/7276418925.html',\n",
+       " 'https://flagstaff.craigslist.org/gms/d/sedona-huge-estate-sale-everything-in/7274707369.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/white-mountain-lake-here-is-an-old-cool/7255639827.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/white-mountain-lake-bring-out-with-the/7261009316.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/white-mountain-lake-77-swap-meet-white/7266503492.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/woodruff-friendly-flea-market-in/7275652522.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/woodruff-live-auction-friday-feb-19/7274157170.html',\n",
+       " 'https://showlow.craigslist.org/gms/d/payson-moving-sale-payson-furniture/7275816169.html',\n",
+       " 'https://yuma.craigslist.org/gms/d/quartzsite-inventory-liquidation/7274520116.html',\n",
+       " 'https://yuma.craigslist.org/gms/d/yuma-mon-friday/7276705716.html',\n",
+       " 'https://yuma.craigslist.org/gms/d/yuma-huge-garage-sale-foothills/7276763175.html',\n",
+       " 'https://yuma.craigslist.org/gms/d/yuma-indoor-yard-sale/7276923652.html',\n",
+       " 'https://yuma.craigslist.org/gms/d/yuma-whiskey-casino-military-license/7275821534.html',\n",
+       " 'https://sierravista.craigslist.org/gms/d/bisbee-patio-heater/7276996744.html']"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "listing_urls"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#pulled one listing url to test get on list\n",
+    "testlink = requests.get(listing_urls[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<Response [200]>"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "testlink"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "bslink = BeautifulSoup(testlink.text,'html.parser')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<section id=\"postingbody\">\n",
+       "<div class=\"print-information print-qrcode-container\">\n",
+       "<p class=\"print-qrcode-label\">QR Code Link to This Post</p>\n",
+       "<div class=\"print-qrcode\" data-location=\"https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\"></div>\n",
+       "</div>\n",
+       "Yard sale ! Beautiful strong pool fencing can be used for any purpose 5x8 panels 10 panels sell for 250 each at home depo. Everything in pictures is available stop by anytime at 2605 W Van Buren Phx Az  or call  <a class=\"show-contact\" data-href=\"/reply/phx/gms/7268963688/__SERVICE_ID__\" href=\"#\" rel=\"nofollow\" title=\"click to show contact info\">show contact info</a><br/>\n",
+       " make offer    </section>"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "body = bslink.find(id='postingbody')\n",
+    "body"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "red flag https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale-lots-of/7274400873.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-big-big-big-yard-sale/7275332897.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-moving-sale/7275775002.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/chandler-big-yard-sale-lots-of-good/7275866813.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-massive-estate-sale/7276157291.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-huge-yard-sale/7276197280.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-must-sell-everything/7276319764.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-huge-moving-sale/7276487183.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-staging-sale-interior-design/7276539534.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-multi-family-garage-sale/7272004729.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/avondale-multiple-vintage-collectable/7274310249.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7274492208.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7275235800.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/casa-grande-hugh-moving-sale-this/7275445739.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7275577143.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/scottsdale-estate-sale-fine-art/7275778357.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-yard-sale-venta-de-garaje/7276308733.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-huge-estate-sale/7276653188.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/tempe-large-garage-sale/7276698402.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-yard-sale-lots-of-baby/7276739542.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/tempe-make-it-go-garage-sale/7276747048.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-stuff-you-may-need-yard-sale/7276772048.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/valley-farms-garage-sale-saturday/7276816977.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-moving-sale-everything/7276882599.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-sale-masks-required/7276892895.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/phoenix-huge-yard-sale-today/7276893723.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/glendale-yard-sale/7276911029.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/phoenix-big-sale/7276924166.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-garage-moving-sale-saturday/7276942671.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-estate-sale/7272785917.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-moving-and-estate-sell/7269045083.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-couponers-stockpile-sale/7275633615.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/phoenix-yard-sale-fencing-outdoor/7268963688.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale-lots-of/7274400873.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-big-big-big-yard-sale/7275332897.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/chandler-big-yard-sale-lots-of-good/7275866813.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-massive-estate-sale/7276157291.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-huge-yard-sale/7276197280.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/surprise-moving-and-estate-sell/7276299231.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-moving-and-estate-sell/7276299857.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/surprise-moving-and-estate-sell/7276300228.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/surprise-moving-and-estate-sell/7276300608.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-must-sell-everything/7276319764.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/peoria-garage-sale-95th-ave-peoria-ave/7276437728.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-huge-moving-sale/7276487183.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-staging-sale-interior-design/7276539534.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-multi-family-garage-sale/7272004729.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/avondale-multiple-vintage-collectable/7274310249.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7274492208.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/casa-grande-hugh-moving-sale-this/7275445739.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-moving-sale/7275577143.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/scottsdale-estate-sale-fine-art/7275778357.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-yard-sale-venta-de-garaje/7276308733.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-huge-estate-sale/7276653188.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/tempe-large-garage-sale/7276698402.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-yard-sale-lots-of-baby/7276739542.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/tempe-make-it-go-garage-sale/7276747048.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-stuff-you-may-need-yard-sale/7276772048.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/valley-farms-garage-sale-saturday/7276816977.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-moving-sale-everything/7276882599.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-garage-sale-masks-required/7276892895.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/phoenix-huge-yard-sale-today/7276893723.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/glendale-yard-sale/7276911029.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/phoenix-big-sale/7276924166.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-garage-moving-sale-saturday/7276942671.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-auto-motorcycle-and/7258515129.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/peoria-sun-city-garage-sale/7275947993.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-huge-mid-century-modern/7276023891.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-yard-sale/7276349929.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/scottsdale-furniture-moving-sale-north/7276682944.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/queen-creek-garage-sale-sun-feb-14th/7276699737.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-free-for-pickup/7276733267.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/peoria-appliances-plastic-glassware/7277087612.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-yard-sale-knock-down-prices/7277110210.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/mesa-yard-sale/7276349929.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/surprise-free-for-pickup/7276733267.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-everything-must-go/7274729105.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/maricopa-emergency-sale-my-loss-your/7274387342.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7274855889.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-estate-sale-part/7275656515.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7276443020.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7277173350.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/scottsdale-moving-sale/7275235800.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-estate-sale-part/7275656515.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/payson-payson-az-moving-sale-furniture/7275815276.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/peoria-estate-sale/7276102562.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/goodyear-multi-family-yard-sale-buckeye/7276506499.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/goodyear-vendor-fair-join-us-for-great/7276511561.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-garage-moving-sale/7268082605.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/glendale-inventory-liquidation/7274529317.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/apache-junction-large-moving-sale/7274809647.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/san-tan-valley-moving-sale/7275775002.html\n",
+      "red flag https://phoenix.craigslist.org/evl/gms/d/tempe-yard-sale/7276380966.html\n",
+      "red flag https://phoenix.craigslist.org/cph/gms/d/maricopa-antiques-jewelry-more/7276443020.html\n",
+      "red flag https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/peoria-estate-sale/7276102562.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/goodyear-multi-family-yard-sale-buckeye/7276506499.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/goodyear-vendor-fair-join-us-for-great/7276511561.html\n",
+      "red flag https://phoenix.craigslist.org/wvl/gms/d/peoria-storage-auction/7275028707.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-big-clean-out-garage-yard-sale/7273854628.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-valley-estate-sale/7276316442.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-estate-sale/7275731360.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-moving-estate-sale-today-sunday/7276934261.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-patio-sale/7276936213.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/chino-valley-moving-sale/7277055691.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/prescott-valley-prescott-valley-estate/7273095854.html\n",
+      "red flag https://prescott.craigslist.org/gms/d/dewey-spring-valley-estate-sale/7276963444.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-huge-sale/7273138517.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-inn-at-civano-teec-nos-pos/7273517124.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-beer-brewing-equipment/7274131067.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-garage-sale-reloading-supplies/7276412774.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-pickers-paradise-artbuilding/7273189383.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-hundreds-of-items-for-sale/7275030371.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-grasons-estate-sale-feb-13th/7275387339.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/sahuarita-garage-moving-sale/7275691177.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-everything-must-go/7276545562.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-moving-sale/7276739428.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/catalina-valentine-yard-sale/7276809795.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-moving-stuff/7276818371.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-huge-estate-sale/7277011666.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-tanqueverde-swap-meet-flea-market/7277093406.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-grasons-estate-sale-feb-13th/7274530764.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-2nd-sunday-vintage-market/7276217325.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-mercado-vintage-flea-market/7276499238.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-foothills-sunday-market/7277111514.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-jewelry-gold-gemstones-turquoise/7276889943.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/green-valley-designer-upscale-garage/7276173807.html\n",
+      "red flag https://tucson.craigslist.org/gms/d/tucson-estate-sale/7274617267.html\n",
+      "red flag https://flagstaff.craigslist.org/gms/d/little-falls-estate-collectable-sale/7276418925.html\n",
+      "red flag https://flagstaff.craigslist.org/gms/d/sedona-huge-estate-sale-everything-in/7274707369.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/white-mountain-lake-here-is-an-old-cool/7255639827.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/white-mountain-lake-bring-out-with-the/7261009316.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/white-mountain-lake-77-swap-meet-white/7266503492.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/woodruff-friendly-flea-market-in/7275652522.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/woodruff-live-auction-friday-feb-19/7274157170.html\n",
+      "red flag https://showlow.craigslist.org/gms/d/payson-moving-sale-payson-furniture/7275816169.html\n",
+      "red flag https://yuma.craigslist.org/gms/d/quartzsite-inventory-liquidation/7274520116.html\n",
+      "red flag https://yuma.craigslist.org/gms/d/yuma-mon-friday/7276705716.html\n",
+      "red flag https://yuma.craigslist.org/gms/d/yuma-huge-garage-sale-foothills/7276763175.html\n",
+      "red flag https://yuma.craigslist.org/gms/d/yuma-indoor-yard-sale/7276923652.html\n",
+      "red flag https://yuma.craigslist.org/gms/d/yuma-whiskey-casino-military-license/7275821534.html\n",
+      "red flag https://sierravista.craigslist.org/gms/d/bisbee-patio-heater/7276996744.html\n",
+      "Completed Task\n"
+     ]
+    }
+   ],
+   "source": [
+    "#set up loop to search for keywords and place in empty list keyword_links\n",
+    "keyword_links=[]\n",
+    "for link in listing_urls:\n",
+    "    print('red flag', link)\n",
+    "    testlink = requests.get(link)\n",
+    "    bslink = BeautifulSoup(testlink.text, 'html.parser')\n",
+    "    sleep(15)\n",
+    "    bodies = bslink.find(id='postingbody')\n",
+    "    #try looks for exceptions in the loop and prints error if no text in body\n",
+    "    try:\n",
+    "        if 'mattress' in bodies.text:\n",
+    "            mattress=('mattress', link)\n",
+    "            keyword_links.append(mattress)\n",
+    "        if 'cabinet' in bodies.text:\n",
+    "            cabinet=('cabinet',link)\n",
+    "            keyword_links.append(cabinet)\n",
+    "        if 'wrench' in bodies.text:\n",
+    "            wrench=('wrench',link)\n",
+    "            keyword_links.append(wrench)\n",
+    "    except:\n",
+    "        print('error')\n",
+    "\n",
+    "print(\"Completed Task\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[('cabinet',\n",
+       "  'https://phoenix.craigslist.org/nph/gms/d/scottsdale-furniture-moving-sale-north/7276682944.html'),\n",
+       " ('cabinet',\n",
+       "  'https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html'),\n",
+       " ('cabinet',\n",
+       "  'https://phoenix.craigslist.org/nph/gms/d/phoenix-estate-sale/7271009444.html'),\n",
+       " ('cabinet',\n",
+       "  'https://prescott.craigslist.org/gms/d/prescott-estate-sale/7275731360.html'),\n",
+       " ('cabinet',\n",
+       "  'https://prescott.craigslist.org/gms/d/prescott-valley-prescott-valley-estate/7273095854.html'),\n",
+       " ('mattress',\n",
+       "  'https://tucson.craigslist.org/gms/d/tucson-hundreds-of-items-for-sale/7275030371.html')]"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "keyword_links"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
